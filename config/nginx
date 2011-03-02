@@ -1,0 +1,27 @@
+upstream uce-frontend {
+	server 192.168.1.48:5280;
+}
+
+server {
+	listen 127.0.0.1:80;
+	server_name kinnect.lo;
+	access_log /var/log/nginx/kinnect.access.log;
+	root /home/nono/dev/kinnect.uce/public;
+
+	proxy_set_header X_FORWARDED_PROTO http;
+	proxy_set_header X-Real-IP $remote_addr;
+	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	proxy_set_header Host $http_host;
+
+	location ^~ /api {
+		proxy_pass http://uce-frontend;
+		break;
+	}
+
+	location / {
+		if (-f $request_filename) { 
+			break; 
+		}
+	}
+}
+
