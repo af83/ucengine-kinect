@@ -1,12 +1,12 @@
 upstream uce-frontend {
-	server 192.168.1.48:5280;
+	server 192.168.1.25:5280;
 }
 
 server {
 	listen 127.0.0.1:80;
-	server_name kinnect.lo;
-	access_log /var/log/nginx/kinnect.access.log;
-	root /home/nono/dev/kinnect.uce/public;
+	server_name nono.localhost;
+	access_log /var/log/nginx/kinect.access.log;
+	root /home/nono/dev/kinect.uce/public;
 
 	proxy_set_header X_FORWARDED_PROTO http;
 	proxy_set_header X-Real-IP $remote_addr;
