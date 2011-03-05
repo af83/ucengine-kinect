@@ -41,7 +41,7 @@ void XnVPointDrawer::SetFrameID(XnBool bFrameID)
 static XnBool bShouldPrint = false;
 void XnVPointDrawer::OnPointCreate(const XnVHandPointContext* cxt)
 {
-        printf("** %d\n", cxt->nID);
+        fprintf(stderr, "** %d\n", cxt->nID);
         // Create entry for the hand
         m_History[cxt->nID].clear();
         bShouldPrint = true;
@@ -55,9 +55,9 @@ void XnVPointDrawer::OnPointUpdate(const XnVHandPointContext* cxt)
         // positions are kept in projective coordinates, since they are only used for drawing
         XnPoint3D ptProjective(cxt->ptPosition);
 
-        if (bShouldPrint)printf("Point (%f,%f,%f)", ptProjective.X, ptProjective.Y, ptProjective.Z);
+        if (bShouldPrint) fprintf(stderr, "Point (%f,%f,%f)", ptProjective.X, ptProjective.Y, ptProjective.Z);
         m_DepthGenerator.ConvertRealWorldToProjective(1, &ptProjective, &ptProjective);
-        if (bShouldPrint)printf(" -> (%f,%f,%f)\n", ptProjective.X, ptProjective.Y, ptProjective.Z);
+        if (bShouldPrint) fprintf(stderr, " -> (%f,%f,%f)\n", ptProjective.X, ptProjective.Y, ptProjective.Z);
 
         // Add new position to the history buffer
         m_History[cxt->nID].push_front(ptProjective);

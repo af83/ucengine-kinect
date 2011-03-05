@@ -16,7 +16,7 @@
 #define CHECK_RC(rc, what)											\
 	if (rc != XN_STATUS_OK)											\
 	{																\
-		printf("%s failed: %s\n", what, xnGetStatusString(rc));		\
+		fprintf(stderr, "%s failed: %s\n", what, xnGetStatusString(rc));		\
 		return rc;													\
 	}
 
@@ -78,6 +78,7 @@ void XN_CALLBACK_TYPE OnNoCircleCB(XnFloat fLastValue, XnVCircleDetector::XnVNoC
 void XN_CALLBACK_TYPE OnSwipeUpCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
 {
 	printf("SwipeUp\n");
+	// g_pSessionManager->LosePoints();
 }
 void XN_CALLBACK_TYPE OnSwipeDownCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
 {
