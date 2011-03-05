@@ -13,7 +13,7 @@ Instructions for a quick start
 
        git clone <...> && cd kinect.uce
        make
-       ./bin/UCE-Gestures
+       ./bin/UCE-Gestures | ./bin/std2uce nono.localhost 80
 
 3. Create the vhost:
 

@@ -28,3 +28,29 @@ curl http://192.168.1.48/api/0.3/infos
 
 curl -H "Host: nono.localhost" http://192.168.1.48:5280/api/0.3/infos
 
+
+Ruby
+----
+
+http://docs.ucengine.org/ruby_install.html
+ -> les exemples ne marchent pas => pas testé
+ -> le port UCEngine.new devrait avoir une valeur par défaut : 80 ?
+ -> quel intérêt de faire un yield self sur connect ?
+ -> quand `connect` échoue, une exception est levée, pas terrible, ça devrait au moins être documenté
+ -> certains exemples de `connect` utilisent :credential et d'autres :password
+ -> il est marqué que `:parent` est obligatoire pour `publish` mais l'exemple ne le met pas
+ -> utiliser des symboles plutôt que des constantes pour les niveaux de logs
+
+Javascript
+----------
+
+Create presence
+ -> le credential/password est avant le uid, alors que c'est l'inverse en Ruby
+
+Attach presence
+ -> l'exemple ne marche pas : un paramètre en trop sur uce.presence.create ?
+
+startLoop
+ -> pas documenté
+ -> expliquer `meeting.startLoop((new Date()).getTime());`
+
