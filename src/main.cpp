@@ -5,9 +5,13 @@
 #include <XnLog.h>
 
 // Header for NITE
-#include "XnVNite.h"
+#include <XnVNite.h>
+#include <XnVCircleDetector.h>
+#include <XnVSwipeDetector.h>
+#include <XnVWaveDetector.h>
+
 // local header
-#include "UCE-Gestures.h"
+#include "PointDrawer.h"
 
 #define CHECK_RC(rc, what)											\
 	if (rc != XN_STATUS_OK)											\
@@ -38,7 +42,6 @@ XnBool g_bDrawDepthMap = true;
 XnBool g_bPrintFrameID = false;
 // Use smoothing?
 XnFloat g_fSmoothing = 0.0f;
-XnBool g_bPause = false;
 XnBool g_bQuit = false;
 
 SessionState g_SessionState = NOT_IN_SESSION;
@@ -46,69 +49,74 @@ SessionState g_SessionState = NOT_IN_SESSION;
 void CleanupExit()
 {
 	g_Context.Shutdown();
-
 	exit (1);
 }
 
-// Callback for when the focus is in progress
-void XN_CALLBACK_TYPE FocusProgress(const XnChar* strFocus, const XnPoint3D& ptPosition, XnFloat fProgress, void* UserCxt)
-{
-//	printf("Focus progress: %s @(%f,%f,%f): %f\n", strFocus, ptPosition.X, ptPosition.Y, ptPosition.Z, fProgress);
-}
-// callback for session start
 void XN_CALLBACK_TYPE SessionStarting(const XnPoint3D& ptPosition, void* UserCxt)
 {
-	printf("Session start: (%f,%f,%f)\n", ptPosition.X, ptPosition.Y, ptPosition.Z);
+	fprintf(stderr, "Session start: (%f,%f,%f)\n", ptPosition.X, ptPosition.Y, ptPosition.Z);
 	g_SessionState = IN_SESSION;
 }
-// Callback for session end
 void XN_CALLBACK_TYPE SessionEnding(void* UserCxt)
 {
-	printf("Session end\n");
+	fprintf(stderr, "Session end\n");
 	g_SessionState = NOT_IN_SESSION;
 }
 void XN_CALLBACK_TYPE NoHands(void* UserCxt)
 {
-	printf("Quick refocus\n");
+	fprintf(stderr, "Quick refocus\n");
 	g_SessionState = QUICK_REFOCUS;
 }
+void XN_CALLBACK_TYPE OnCircleCB(XnFloat fTimes, XnBool bConfident, const XnVCircle* pCircle, void* pUserCxt)
+{
+	fprintf(stderr, "Circle %f\n", fTimes);
+}
+void XN_CALLBACK_TYPE OnNoCircleCB(XnFloat fLastValue, XnVCircleDetector::XnVNoCircleReason eReason, void* pUserCxt)
+{
+	printf("NoCircle %f\n", fLastValue);
+}
+void XN_CALLBACK_TYPE OnSwipeUpCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
+{
+	printf("SwipeUp\n");
+}
+void XN_CALLBACK_TYPE OnSwipeDownCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
+{
+	printf("SwipeDown\n");
+}
+void XN_CALLBACK_TYPE OnSwipeLeftCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
+{
+	printf("SwipeLeft\n");
+}
+void XN_CALLBACK_TYPE OnSwipeRightCB(XnFloat fVelocity, XnFloat fAngle, void* pUserCxt)
+{
+	printf("SwipeRight\n");
+}
+void XN_CALLBACK_TYPE OnWaveCB(void* cxt)
+{
+	printf("Wave\n");
+}
+
 
 // this function is called each frame
 void glutDisplay (void)
 {
-
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// Setup the OpenGL viewpoint
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-
 	XnMapOutputMode mode;
 	g_DepthGenerator.GetMapOutputMode(mode);
 	glOrtho(0, mode.nXRes, mode.nYRes, 0, -1.0, 1.0);
-
 	glDisable(GL_TEXTURE_2D);
-
-	if (!g_bPause)
-	{
-		// Read next available data
-		g_Context.WaitAndUpdateAll();
-		// Update NITE tree
-		g_pSessionManager->Update(&g_Context);
-		PrintSessionState(g_SessionState);
-	}
-
+	g_Context.WaitAndUpdateAll();
+	g_pSessionManager->Update(&g_Context);
+	PrintSessionState(g_SessionState);
 	glutSwapBuffers();
 }
 
 void glutIdle (void)
 {
-	if (g_bQuit) {
-		CleanupExit();
-	}
-
-	// Display the frame
+	if (g_bQuit) { CleanupExit(); }
 	glutPostRedisplay();
 }
 
@@ -119,10 +127,6 @@ void glutKeyboard (unsigned char key, int x, int y)
 	case 27:
 		// Exit
 		CleanupExit();
-	case'p':
-		// Toggle pause
-		g_bPause = !g_bPause;
-		break;
 	case 'd':
 		// Toggle drawing of the depth map
 		g_bDrawDepthMap = !g_bDrawDepthMap;
@@ -155,14 +159,11 @@ void glInit (int * pargc, char ** argv)
 	glutCreateWindow ("PrimeSense Nite Point Viewer");
 	//glutFullScreen();
 	glutSetCursor(GLUT_CURSOR_NONE);
-
 	glutKeyboardFunc(glutKeyboard);
 	glutDisplayFunc(glutDisplay);
 	glutIdleFunc(glutIdle);
-
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
-
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 }
@@ -188,16 +189,34 @@ int main(int argc, char ** argv)
 	rc = g_pSessionManager->Initialize(&g_Context, "Click,Wave", "RaiseHand");
 	CHECK_RC(rc, "SessionManager::Initialize");
 
-	g_pSessionManager->RegisterSession(NULL, SessionStarting, SessionEnding, FocusProgress);
+	g_pSessionManager->RegisterSession(NULL, SessionStarting, SessionEnding, NULL);
 
 	g_pDrawer = new XnVPointDrawer(20, g_DepthGenerator);
 	g_pFlowRouter = new XnVFlowRouter;
 	g_pFlowRouter->SetActive(g_pDrawer);
-
 	g_pSessionManager->AddListener(g_pFlowRouter);
 
 	g_pDrawer->RegisterNoPoints(NULL, NoHands);
 	g_pDrawer->SetDepthMap(g_bDrawDepthMap);
+
+	// init & register circle control
+	XnVCircleDetector circle;
+	circle.RegisterCircle(NULL, OnCircleCB);
+	circle.RegisterNoCircle(NULL, OnNoCircleCB);
+	g_pSessionManager->AddListener(&circle);
+
+	// init & register swipe control
+	XnVSwipeDetector swipe;
+	swipe.RegisterSwipeUp(NULL, OnSwipeUpCB);
+	swipe.RegisterSwipeDown(NULL, OnSwipeDownCB);
+	swipe.RegisterSwipeLeft(NULL, OnSwipeLeftCB);
+	swipe.RegisterSwipeRight(NULL, OnSwipeRightCB);
+	g_pSessionManager->AddListener(&swipe);
+
+	// init & register wave control
+	XnVWaveDetector wave;
+	wave.RegisterWave(NULL, OnWaveCB);
+	g_pSessionManager->AddListener(&wave);
 
 	// Initialization done. Start generating
 	rc = g_Context.StartGeneratingAll();
