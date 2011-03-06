@@ -1,10 +1,17 @@
-Kinnect with UCEngine
-=====================
+Kinect with UCEngine
+====================
+
+What: detect gestures with a Kinect and send them as events to UCEngine  
+When: CodeWeek 5  
+Where: Caours, France  
+Who: Bruno Michel, af83  
+
 
 Instructions for a quick start
 ------------------------------
 
 1. Install dependencies:
+   * [UCEngine](http://www.ucengine.org/)
    * [OpenNI](https://github.com/OpenNI/OpenNI)
    * [Sensor](https://github.com/boilerbots/Sensor)
    * [NITE](http://www.openni.org/downloadfiles/openni-compliant-middleware-binaries/34-stable)
@@ -26,3 +33,10 @@ Instructions for a quick start
 
        firefox http://nono.localhost/
 
+
+Credits
+-------
+
+The code is licensed as MIT. See the MIT-LICENSE for the full license.
+
+Copyright (c) 2011 Bruno Michel <bruno.michel@af83.com>
