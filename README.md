@@ -34,6 +34,19 @@ Instructions for a quick start
        firefox http://nono.localhost/
 
 
+Events
+------
+
+List of events in UCEngine:
+
+* kinect.wave
+* kinect.nocircle (end of a circle move, with the number of circles made in param)
+* kinect.swipeup
+* kinect.swipedown
+* kinect.swipeleft
+* kinect.swiperight
+
+
 Credits
 -------
 
